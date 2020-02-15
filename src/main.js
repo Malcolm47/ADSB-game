@@ -4,9 +4,6 @@ var config = {
         height: 600,
         physics: {
             default: 'arcade',
-            arcade: {
-                gravity: { y: 200 }
-            }
         },
         scene: {
             preload: preload,
@@ -18,30 +15,18 @@ var config = {
 
     function preload ()
     {
-        this.load.setBaseURL('http://labs.phaser.io');
-
-        this.load.image('sky', 'assets/skies/space3.png');
-        this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-        this.load.image('red', 'assets/particles/red.png');
+    // IMPORTANT! Web server needs to be running for ADSB-game folder.
+    // index.html can be run via IDE but the image paths need to be through server.
+    // Make sure "set CORS headers" option is on
+        this.load.image('test', 'http://127.0.0.1:8887/assets/momement.png');
     }
 
     function create ()
     {
-        this.add.image(400, 300, 'sky');
 
-        var particles = this.add.particles('red');
+        var test = this.physics.add.image(400, 100, 'test');
 
-        var emitter = particles.createEmitter({
-            speed: 100,
-            scale: { start: 1, end: 0 },
-            blendMode: 'ADD'
-        });
-
-        var logo = this.physics.add.image(400, 100, 'logo');
-
-        logo.setVelocity(100, 200);
-        logo.setBounce(1, 1);
-        logo.setCollideWorldBounds(true);
-
-        emitter.startFollow(logo);
+        test.setVelocity(100, 200);
+        test.setBounce(1, 1);
+        test.setCollideWorldBounds(true);
     }
