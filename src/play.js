@@ -10,7 +10,7 @@ class play extends Phaser.Scene {
     // Make sure "set CORS headers" option is on
         this.load.image('bruh', 'http://127.0.0.1:8887/assets/momement2.png');
         //this.load.image('level-end', 'http://127.0.0.1:8887/assets/ascension.png');
-        this.load.image('tiles', 'http://127.0.0.1:8887/assets/momement.png');
+        this.load.image('tiles', 'http://127.0.0.1:8887/assets/earth-tiles.png');
         this.load.tilemapTiledJSON('map', 'http://127.0.0.1:8887/assets/first-test-json.json');
         this.load.spritesheet('bert', 'http://127.0.0.1:8887/assets/bert.png', {
             frameWidth: 107,
@@ -25,8 +25,11 @@ class play extends Phaser.Scene {
     create ()
     {
         const map = this.make.tilemap({ key: 'map' });
-        const tileset = map.addTilesetImage('testing', 'tiles', 32, 32);
-        const platforms = map.createStaticLayer('Tile Layer 1', tileset, 0, 200).setScale(2);
+        // first thing is embedded tileset name, second is tileset png
+        // then width+height of tiles, margin, and spacing
+        // Remember to manually extrude tiles (18*18 in piskel) :)
+        const tileset = map.addTilesetImage('earth', 'tiles', 16, 16, 1, 2);
+        const platforms = map.createStaticLayer('platforms', tileset, 0, 200).setScale(4);
   // There are many ways to set collision between tiles and players
   // As we want players to collide with all of the platforms, we tell Phaser to
   // set collisions for every tile in our platform layer whose index isn't -1.
@@ -34,10 +37,11 @@ class play extends Phaser.Scene {
   // the platform layer
         platforms.setCollisionByExclusion(-1, true);
 
-        this.physics.world.setBounds(0, 0, 1600, 1200);
+        this.physics.world.setBounds(0, 0, 4000, 4000);
         this.cameras.main.zoom = 0.8;
+        
 
-        this.bert = this.physics.add.sprite(200,800,'bert').setScale(0.45);
+        this.bert = this.physics.add.sprite(200,2700,'bert').setScale(0.45);
         this.portal = this.physics.add.sprite(1500,1000,'portal').setScale(2);
         //this.portal.body.setGravityY(400);
 
@@ -47,7 +51,7 @@ class play extends Phaser.Scene {
         this.physics.add.collider(this.bert, platforms);
         this.physics.add.collider(this.portal, platforms);
         this.physics.add.overlap(this.bert, this.portal, function(){
-            this.scene.start('lobby');
+            this.scene.start('play');
         }, null, this);
 
         this.anims.create({
@@ -60,7 +64,7 @@ class play extends Phaser.Scene {
         this.anims.create({
             key: 'portal_anim',
             frames: this.anims.generateFrameNumbers('portal'),
-            frameRate: 15,
+            frameRate: 12,
             repeat: -1
         });
 
@@ -69,6 +73,7 @@ class play extends Phaser.Scene {
         this.keyA = this.input.keyboard.addKey('A');
 
         this.cameras.main.startFollow(this.bert);
+        //this.cameras.main.roundPixels = true;
     }
 
     update ()
