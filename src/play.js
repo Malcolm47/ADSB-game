@@ -29,7 +29,8 @@ class play extends Phaser.Scene {
         // then width+height of tiles, margin, and spacing
         // Remember to manually extrude tiles (18*18 in piskel) :)
         const tileset = map.addTilesetImage('earth', 'tiles', 16, 16, 1, 2);
-        const platforms = map.createStaticLayer('platforms', tileset, 0, 200).setScale(4);
+        const background = map.createStaticLayer('background', tileset, 0, 0).setScale(4);
+        const platforms = map.createStaticLayer('platforms', tileset, 0, 0).setScale(4);
   // There are many ways to set collision between tiles and players
   // As we want players to collide with all of the platforms, we tell Phaser to
   // set collisions for every tile in our platform layer whose index isn't -1.
@@ -41,7 +42,7 @@ class play extends Phaser.Scene {
         this.cameras.main.zoom = 0.8;
         
 
-        this.bert = this.physics.add.sprite(200,2700,'bert').setScale(0.45);
+        this.bert = this.physics.add.sprite(200,2600,'bert').setScale(0.45);
         this.portal = this.physics.add.sprite(1500,1000,'portal').setScale(2);
         //this.portal.body.setGravityY(400);
 
