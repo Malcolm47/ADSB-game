@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.2" tiledversion="1.3.2" name="testing" tilewidth="32" tileheight="32" tilecount="22" columns="11">
+<tileset version="1.2" tiledversion="1.3.2" name="tester" tilewidth="16" tileheight="16" spacing="2" margin="1" tilecount="80" columns="20">
  <image source="momement.png" width="365" height="78"/>
 </tileset>

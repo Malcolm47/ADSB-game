@@ -9,12 +9,11 @@ class play extends Phaser.Scene {
     // index.html can be run via IDE but the image paths need to be through server.
     // Make sure "set CORS headers" option is on
         this.load.image('bruh', 'http://127.0.0.1:8887/assets/momement2.png');
-        //this.load.image('level-end', 'http://127.0.0.1:8887/assets/ascension.png');
         this.load.image('tiles', 'http://127.0.0.1:8887/assets/earth-tiles.png');
         this.load.tilemapTiledJSON('map', 'http://127.0.0.1:8887/assets/first-test-json.json');
-        this.load.spritesheet('bert', 'http://127.0.0.1:8887/assets/bert.png', {
-            frameWidth: 107,
-            frameHeight: 140
+        this.load.spritesheet('bert', 'http://127.0.0.1:8887/assets/temp-guy.png', {
+            frameWidth: 48,
+            frameHeight: 48
         });
         this.load.spritesheet('portal', 'http://127.0.0.1:8887/assets/portal.png', {
             frameWidth: 35,
@@ -24,6 +23,9 @@ class play extends Phaser.Scene {
 
     create ()
     {
+        var spawnX;
+        var spawnY;
+
         const map = this.make.tilemap({ key: 'map' });
         // first thing is embedded tileset name, second is tileset png
         // then width+height of tiles, margin, and spacing
@@ -31,28 +33,42 @@ class play extends Phaser.Scene {
         const tileset = map.addTilesetImage('earth', 'tiles', 16, 16, 1, 2);
         const background = map.createStaticLayer('background', tileset, 0, 0).setScale(4);
         const platforms = map.createStaticLayer('platforms', tileset, 0, 0).setScale(4);
+        const rear_platforms = map.createStaticLayer('rear_platforms', tileset, 0, 0).setScale(4);
   // There are many ways to set collision between tiles and players
   // As we want players to collide with all of the platforms, we tell Phaser to
   // set collisions for every tile in our platform layer whose index isn't -1.
   // Tiled indices can only be >= 0, therefore we are colliding with all of
   // the platform layer
         platforms.setCollisionByExclusion(-1, true);
+        rear_platforms.setCollisionByExclusion(-1, true);
 
-        this.physics.world.setBounds(0, 0, 4000, 4000);
+        this.physics.world.setBounds(0, 0, 8200, 4000);
         this.cameras.main.zoom = 0.8;
         
-
-        this.bert = this.physics.add.sprite(200,2600,'bert').setScale(0.45);
-        this.portal = this.physics.add.sprite(1500,1000,'portal').setScale(2);
-        //this.portal.body.setGravityY(400);
+        this.checkpoints = this.physics.add.group({
+            immovable: true
+        });
+        
+        this.checkpoints.create(800, 2550, 'checkpoint1');
+        //this.checkpoints.setImmovable(true);
+        this.bert = this.physics.add.sprite(200,2500,'bert').setScale(1.2);
+        this.portal = this.physics.add.sprite(500,2550,'portal').setScale(2);
 
         this.bert.body.setGravityY(400);
         //this.bert.setBounce(0.2);
         this.bert.setCollideWorldBounds(true);
         this.physics.add.collider(this.bert, platforms);
+        this.physics.add.collider(this.bert, rear_platforms);
         this.physics.add.collider(this.portal, platforms);
+        this.physics.add.collider(this.bert, this.checkpoints);
+        this.physics.add.collider(this.checkpoints, platforms);
         this.physics.add.overlap(this.bert, this.portal, function(){
-            this.scene.start('play');
+            this.bert.setX(spawnX);
+            this.bert.setY(spawnY);
+        }, null, this);
+        this.physics.add.overlap(this.bert, this.checkpoints, function(){
+            spawnX = this.bert.x;
+            spawnY = this.bert.y;
         }, null, this);
 
         this.anims.create({
@@ -73,25 +89,28 @@ class play extends Phaser.Scene {
         this.keyD = this.input.keyboard.addKey('D');
         this.keyA = this.input.keyboard.addKey('A');
 
+        this.bert.setMaxVelocity(280, 900);
+
         this.cameras.main.startFollow(this.bert);
         //this.cameras.main.roundPixels = true;
     }
 
     update ()
     {
-        //var isDown = this.keyW.isDown;
-        //var isUp = this.keyW.isUp;
+        // deceleration
+        this.bert.body.useDamping=true;
+        this.bert.setDrag(0.9, 0); //takes value between 0-1 you can also set x,y seperately setDrag(x,y)
         if (this.keyW.isDown && this.bert.body.onFloor()) {
             this.bert.setVelocityY(-450);
         }
         if (this.keyD.isDown) {
-            this.bert.setVelocityX(220);
+            this.bert.setAccelerationX(1000);
         } else if (this.keyA.isDown) {
-            this.bert.setVelocityX(-220);
+            this.bert.setAccelerationX(-1000);
         } else {
-            this.bert.setVelocityX(0);
+            this.bert.setAccelerationX(0);
         }
-        this.bert.play('bert_anim', true);
+        //this.bert.play('bert_anim', true);
         this.portal.play('portal_anim', true);
     }
 }
