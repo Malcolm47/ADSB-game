@@ -8,7 +8,9 @@ class play extends Phaser.Scene {
     // IMPORTANT! Web server needs to be running for ADSB-game folder.
     // index.html can be run via IDE but the image paths need to be through server.
     // Make sure "set CORS headers" option is on
-        this.load.image('bruh', 'http://127.0.0.1:8887/assets/momement2.png');
+
+        // ------   FOR HOME - USE WITH CHROME WEB SERVER  -----
+        /*this.load.image('bruh', 'http://127.0.0.1:8887/assets/momement2.png');
         this.load.image('tiles', 'http://127.0.0.1:8887/assets/earth-tiles.png');
         this.load.tilemapTiledJSON('map', 'http://127.0.0.1:8887/assets/first-test-json.json');
         this.load.spritesheet('bert', 'http://127.0.0.1:8887/assets/temp-guy.png', {
@@ -16,6 +18,19 @@ class play extends Phaser.Scene {
             frameHeight: 48
         });
         this.load.spritesheet('portal', 'http://127.0.0.1:8887/assets/portal.png', {
+            frameWidth: 35,
+            frameHeight: 50
+        });*/
+
+        // ------   FOR INTELLIJ  --------
+        this.load.image('bruh', 'http://localhost:63342/ADSB-game2/assets/momement2.png');
+        this.load.image('tiles', 'http://localhost:63342/ADSB-game2/assets/earth-tiles.png');
+        this.load.tilemapTiledJSON('map', 'http://localhost:63342/ADSB-game2/assets/first-test-json.json');
+        this.load.spritesheet('bert', 'http://localhost:63342/ADSB-game2/assets/temp-guy.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('portal', 'http://localhost:63342/ADSB-game2/assets/portal.png', {
             frameWidth: 35,
             frameHeight: 50
         });
