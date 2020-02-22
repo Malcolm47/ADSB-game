@@ -5,12 +5,18 @@ class play extends Phaser.Scene {
 
     preload ()
     {
+        this.load.scenePlugin({
+            key: 'AnimatedTiles',
+            url: 'AnimatedTiles.js',
+            sceneKey: 'animatedTiles'
+        });
+
     // IMPORTANT! Web server needs to be running for ADSB-game folder.
     // index.html can be run via IDE but the image paths are served through server.
     // Make sure "set CORS headers" option is on
-
         this.load.image('bruh', '../assets/momement2.png');
         this.load.image('tiles', '../assets/earth-tiles.png');
+        this.load.image('gooTiles', '../assets/purple-goo.png');
         this.load.tilemapTiledJSON('map', '../assets/first-test-json.json');
         this.load.spritesheet('bert', '../assets/temp-guy.png', {
             frameWidth: 48,
@@ -24,8 +30,8 @@ class play extends Phaser.Scene {
 
     create ()
     {
-        var spawnX;
-        var spawnY;
+        var spawnX = 200;
+        var spawnY = 2500;
 
         const map = this.make.tilemap({ key: 'map' });
         // first thing is embedded tileset name, second is tileset png
@@ -35,6 +41,10 @@ class play extends Phaser.Scene {
         const background = map.createStaticLayer('background', tileset, 0, 0).setScale(4);
         const platforms = map.createStaticLayer('platforms', tileset, 0, 0).setScale(4);
         const rear_platforms = map.createStaticLayer('rear_platforms', tileset, 0, 0).setScale(4);
+        const gooTiles = map.addTilesetImage('purple-goo', 'gooTiles', 16, 16, 1, 2);
+        const goo = map.createDynamicLayer('goo', gooTiles, 0, 0).setScale(4);
+        this.animatedTiles.init(map);
+        this.animatedTiles.setRate(0.5);
   // There are many ways to set collision between tiles and players
   // As we want players to collide with all of the platforms, we tell Phaser to
   // set collisions for every tile in our platform layer whose index isn't -1.
@@ -61,7 +71,10 @@ class play extends Phaser.Scene {
         this.physics.add.collider(this.bert, platforms);
         this.physics.add.collider(this.bert, rear_platforms);
         this.physics.add.collider(this.portal, platforms);
-        this.physics.add.collider(this.bert, this.checkpoints);
+        // this.physics.add.collider(this.bert, this.checkpoints, function(){
+        //     spawnX = this.bert.x;
+        //     spawnY = this.bert.y;
+        // }, null, this);
         this.physics.add.collider(this.checkpoints, platforms);
         this.physics.add.overlap(this.bert, this.portal, function(){
             this.bert.setX(spawnX);
