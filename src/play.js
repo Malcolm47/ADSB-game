@@ -26,6 +26,15 @@ class play extends Phaser.Scene {
             frameWidth: 35,
             frameHeight: 50
         });
+        // REMEMBER TO ADD FLAG RESPONSIVENESS AT SOME POINT
+        this.load.spritesheet('flag', '../assets/flag.png', {
+            frameWidth: 25,
+            frameHeight: 32
+        });
+        this.load.spritesheet('enemy', '../assets/enemy.png', {
+            frameWidth: 48,
+            frameHeight: 14
+        });
     }
 
     create ()
@@ -52,18 +61,23 @@ class play extends Phaser.Scene {
   // the platform layer
         platforms.setCollisionByExclusion(-1, true);
         rear_platforms.setCollisionByExclusion(-1, true);
-
+        goo.setCollisionByExclusion(-1, true);
+        
         this.physics.world.setBounds(0, 0, 8200, 4000);
         this.cameras.main.zoom = 0.8;
         
         this.checkpoints = this.physics.add.group({
             immovable: true
         });
+        this.checkpoints.create(800, 2550, 'flag').setScale(3);
+
+        this.enemies = this.physics.add.group({
+            immovable: true
+        });
+        this.enemies.create(600, 2550, 'enemy').setScale(3);
         
-        this.checkpoints.create(800, 2550, 'checkpoint1');
-        //this.checkpoints.setImmovable(true);
         this.bert = this.physics.add.sprite(200,2500,'bert').setScale(1.2);
-        this.portal = this.physics.add.sprite(500,2550,'portal').setScale(2);
+        this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
 
         this.bert.body.setGravityY(400);
         //this.bert.setBounce(0.2);
@@ -76,7 +90,12 @@ class play extends Phaser.Scene {
         //     spawnY = this.bert.y;
         // }, null, this);
         this.physics.add.collider(this.checkpoints, platforms);
-        this.physics.add.overlap(this.bert, this.portal, function(){
+        this.physics.add.collider(this.enemies, platforms);
+        this.physics.add.collider(this.bert, goo, function(){
+            this.bert.setX(spawnX);
+            this.bert.setY(spawnY);
+        }, null, this);
+        this.physics.add.collider(this.bert, this.enemies, function(){
             this.bert.setX(spawnX);
             this.bert.setY(spawnY);
         }, null, this);
@@ -96,6 +115,21 @@ class play extends Phaser.Scene {
             key: 'portal_anim',
             frames: this.anims.generateFrameNumbers('portal'),
             frameRate: 12,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'flag_anim',
+            frames: this.anims.generateFrameNumbers('flag'),
+            frameRate: 9,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'enemy_anim',
+            frames: this.anims.generateFrameNumbers('enemy'),
+            frameRate: 6,
+            yoyo: true,
             repeat: -1
         });
 
@@ -126,5 +160,7 @@ class play extends Phaser.Scene {
         }
         //this.bert.play('bert_anim', true);
         this.portal.play('portal_anim', true);
+        this.checkpoints.playAnimation('flag_anim', true);
+        this.enemies.playAnimation('enemy_anim', true);
     }
 }
