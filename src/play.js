@@ -32,8 +32,12 @@ class play extends Phaser.Scene {
             frameHeight: 32
         });
         this.load.spritesheet('enemy', '../assets/enemy.png', {
-            frameWidth: 48,
+            frameWidth: 48, 
             frameHeight: 14
+        });
+        this.load.spritesheet('coin', '../assets/coin.png', {
+            frameWidth: 32,
+            frameHeight: 32
         });
     }
 
@@ -69,12 +73,19 @@ class play extends Phaser.Scene {
         this.checkpoints = this.physics.add.group({
             immovable: true
         });
-        this.checkpoints.create(800, 2550, 'flag').setScale(3);
+        this.checkpoints.create(800, 2550, 'flag').setScale(2.5);
 
         this.enemies = this.physics.add.group({
+            //key: 'enemy',
             immovable: true
         });
         this.enemies.create(600, 2550, 'enemy').setScale(3);
+        this.enemies.create(1200, 2400, 'enemy').setScale(3);
+
+        this.coins = this.physics.add.group({
+            immovable: true
+        })
+        this.coins.create(1800, 2400, 'coin').setScale(1.4);
         
         this.bert = this.physics.add.sprite(200,2500,'bert').setScale(1.2);
         this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
@@ -91,17 +102,25 @@ class play extends Phaser.Scene {
         // }, null, this);
         this.physics.add.collider(this.checkpoints, platforms);
         this.physics.add.collider(this.enemies, platforms);
+        this.physics.add.collider(this.coins, platforms);
         this.physics.add.collider(this.bert, goo, function(){
             this.bert.setX(spawnX);
             this.bert.setY(spawnY);
         }, null, this);
-        this.physics.add.collider(this.bert, this.enemies, function(){
-            this.bert.setX(spawnX);
-            this.bert.setY(spawnY);
-        }, null, this);
+        this.physics.add.overlap(this.bert, this.enemies, killEnemy, null, this);
+
+        function killEnemy (player, enemy) {
+            if (this.bert.body.velocity.y > 0) {
+                enemy.disableBody(true,true);
+            } else {
+                this.bert.setX(spawnX);
+                this.bert.setY(spawnY);
+            }
+        }
+
         this.physics.add.overlap(this.bert, this.checkpoints, function(){
-            spawnX = this.bert.x;
-            spawnY = this.bert.y;
+            this.spawnX = this.bert.x;
+            this.spawnY = this.bert.y;
         }, null, this);
 
         this.anims.create({
@@ -110,26 +129,29 @@ class play extends Phaser.Scene {
             frameRate: 10,
             repeat: -1
         });
-
         this.anims.create({
             key: 'portal_anim',
             frames: this.anims.generateFrameNumbers('portal'),
             frameRate: 12,
             repeat: -1
         });
-
         this.anims.create({
             key: 'flag_anim',
             frames: this.anims.generateFrameNumbers('flag'),
             frameRate: 9,
             repeat: -1
         });
-
         this.anims.create({
             key: 'enemy_anim',
             frames: this.anims.generateFrameNumbers('enemy'),
             frameRate: 6,
             yoyo: true,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'coin_anim',
+            frames: this.anims.generateFrameNumbers('coin'),
+            frameRate: 27,
             repeat: -1
         });
 
@@ -140,6 +162,7 @@ class play extends Phaser.Scene {
         this.bert.setMaxVelocity(280, 900);
 
         this.cameras.main.startFollow(this.bert);
+        this.cameras.main.setLerp(0.1);
         //this.cameras.main.roundPixels = true;
     }
 
@@ -158,9 +181,11 @@ class play extends Phaser.Scene {
         } else {
             this.bert.setAccelerationX(0);
         }
+
         //this.bert.play('bert_anim', true);
         this.portal.play('portal_anim', true);
         this.checkpoints.playAnimation('flag_anim', true);
         this.enemies.playAnimation('enemy_anim', true);
+        this.coins.playAnimation('coin_anim', true);
     }
 }
