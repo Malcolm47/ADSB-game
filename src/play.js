@@ -108,7 +108,6 @@ class play extends Phaser.Scene {
             this.bert.setY(spawnY);
         }, null, this);
         this.physics.add.overlap(this.bert, this.enemies, killEnemy, null, this);
-
         function killEnemy (player, enemy) {
             if (this.bert.body.velocity.y > 0) {
                 enemy.disableBody(true,true);
@@ -118,9 +117,13 @@ class play extends Phaser.Scene {
             }
         }
 
+        this.physics.add.overlap(this.bert, this.coins, collectCoin, null, this);
+        function collectCoin (player, coin) {
+            coin.disableBody(true,true);
+        }
         this.physics.add.overlap(this.bert, this.checkpoints, function(){
-            this.spawnX = this.bert.x;
-            this.spawnY = this.bert.y;
+            spawnX = this.bert.x;
+            spawnY = this.bert.y;
         }, null, this);
 
         this.anims.create({
