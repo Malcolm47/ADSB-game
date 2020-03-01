@@ -17,6 +17,7 @@ class play extends Phaser.Scene {
         this.load.image('bruh', '../assets/momement2.png');
         this.load.image('tiles', '../assets/earth-tiles.png');
         this.load.image('gooTiles', '../assets/purple-goo.png');
+        this.load.image('dot', '../assets/dot.png');
         this.load.tilemapTiledJSON('map', '../assets/first-test-json.json');
         this.load.spritesheet('bert', '../assets/temp-guy.png', {
             frameWidth: 48,
@@ -44,16 +45,18 @@ class play extends Phaser.Scene {
     create ()
     {
         var spawnX = 200;
-        var spawnY = 2500;
+        var spawnY = 2382;
 
         const map = this.make.tilemap({ key: 'map' });
         // first thing is embedded tileset name, second is tileset png
         // then width+height of tiles, margin, and spacing
         // Remember to manually extrude tiles (18*18 in piskel) :)
         const tileset = map.addTilesetImage('earth', 'tiles', 16, 16, 1, 2);
+        const enemy_walls = map.addTilesetImage('enemy_walls', 'dot', 16, 16, 0, 0);
         const background = map.createStaticLayer('background', tileset, 0, 0).setScale(4);
         const platforms = map.createStaticLayer('platforms', tileset, 0, 0).setScale(4);
         const rear_platforms = map.createStaticLayer('rear_platforms', tileset, 0, 0).setScale(4);
+        const enemyWalls = map.createStaticLayer('enemy_walls', enemy_walls, 0, 0).setScale(4);
         const gooTiles = map.addTilesetImage('purple-goo', 'gooTiles', 16, 16, 1, 2);
         const goo = map.createDynamicLayer('goo', gooTiles, 0, 0).setScale(4);
         this.animatedTiles.init(map);
@@ -66,6 +69,7 @@ class play extends Phaser.Scene {
         platforms.setCollisionByExclusion(-1, true);
         rear_platforms.setCollisionByExclusion(-1, true);
         goo.setCollisionByExclusion(-1, true);
+        enemyWalls.setCollisionByExclusion(-1, true);
         
         this.physics.world.setBounds(0, 0, 8200, 4000);
         this.cameras.main.zoom = 0.8;
@@ -73,21 +77,32 @@ class play extends Phaser.Scene {
         this.checkpoints = this.physics.add.group({
             immovable: true
         });
-        this.checkpoints.create(800, 2550, 'flag').setScale(2.5);
+        this.checkpoints.create(2914, 2182, 'flag').setScale(2.5);
 
         this.enemies = this.physics.add.group({
-            //key: 'enemy',
             immovable: true
         });
-        this.enemies.create(600, 2550, 'enemy').setScale(3);
-        this.enemies.create(1200, 2400, 'enemy').setScale(3);
+        this.enemies.create(600, 2550, 'enemy');
+        this.enemies.create(1200, 2400, 'enemy');
+        this.enemies.children.iterate((child) => {
+            child.setSize(45,10);
+            child.setOffset(0,4)
+            child.setScale(3);
+            child.setVelocityX(160);
+            child.setBounceX(1);
+        });
 
         this.coins = this.physics.add.group({
             immovable: true
         })
-        this.coins.create(1800, 2400, 'coin').setScale(1.4);
+        this.coins.create(1800, 2400, 'coin');
+        this.coins.children.iterate((child) => {
+            child.setSize(20,20);
+            child.setOffset(0,12)
+            child.setScale(1.4);
+        });
         
-        this.bert = this.physics.add.sprite(200,2500,'bert').setScale(1.2);
+        this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.2);
         this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
 
         this.bert.body.setGravityY(400);
@@ -96,19 +111,16 @@ class play extends Phaser.Scene {
         this.physics.add.collider(this.bert, platforms);
         this.physics.add.collider(this.bert, rear_platforms);
         this.physics.add.collider(this.portal, platforms);
-        // this.physics.add.collider(this.bert, this.checkpoints, function(){
-        //     spawnX = this.bert.x;
-        //     spawnY = this.bert.y;
-        // }, null, this);
         this.physics.add.collider(this.checkpoints, platforms);
+        this.physics.add.collider(this.enemies, enemyWalls);
         this.physics.add.collider(this.enemies, platforms);
         this.physics.add.collider(this.coins, platforms);
         this.physics.add.collider(this.bert, goo, function(){
             this.bert.setX(spawnX);
             this.bert.setY(spawnY);
         }, null, this);
-        this.physics.add.overlap(this.bert, this.enemies, killEnemy, null, this);
-        function killEnemy (player, enemy) {
+        this.physics.add.overlap(this.bert, this.enemies, enemyHit, null, this);
+        function enemyHit (player, enemy) {
             if (this.bert.body.velocity.y > 0) {
                 enemy.disableBody(true,true);
             } else {
@@ -145,9 +157,16 @@ class play extends Phaser.Scene {
             repeat: -1
         });
         this.anims.create({
-            key: 'enemy_anim',
-            frames: this.anims.generateFrameNumbers('enemy'),
-            frameRate: 6,
+            key: 'enemy_right',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 0, end: 2}),
+            frameRate: 7,
+            yoyo: true,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy_left',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 3, end: 5}),
+            frameRate: 7,
             yoyo: true,
             repeat: -1
         });
@@ -161,6 +180,12 @@ class play extends Phaser.Scene {
         this.keyW = this.input.keyboard.addKey('W');  // Get key object
         this.keyD = this.input.keyboard.addKey('D');
         this.keyA = this.input.keyboard.addKey('A');
+        var keyC = this.input.keyboard.addKey('C');
+        var keyP = this.input.keyboard.addKey('P');
+
+        keyC.on('up', function() {console.log(Math.floor(this.bert.body.position.x + 24) + ", " + 
+        Math.floor(this.bert.body.position.y + 48));}, this)
+        keyP.on('up', function() {this.bert.setMaxVelocity(500,900)}, this)
 
         this.bert.setMaxVelocity(280, 900);
 
@@ -185,10 +210,16 @@ class play extends Phaser.Scene {
             this.bert.setAccelerationX(0);
         }
 
-        //this.bert.play('bert_anim', true);
+        this.enemies.children.iterate((child) => {
+            if (child.body.velocity.x > 0) {
+                child.play('enemy_right', true);
+            } else {
+                child.play('enemy_left', true);
+            }
+        });
         this.portal.play('portal_anim', true);
         this.checkpoints.playAnimation('flag_anim', true);
-        this.enemies.playAnimation('enemy_anim', true);
+        //this.enemies.playAnimation('enemy_anim', true);
         this.coins.playAnimation('coin_anim', true);
     }
 }
