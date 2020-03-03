@@ -45,7 +45,7 @@ class play extends Phaser.Scene {
     create ()
     {
         var spawnX = 200;
-        var spawnY = 2382;
+        var spawnY = 2550;
 
         const map = this.make.tilemap({ key: 'map' });
         // first thing is embedded tileset name, second is tileset png
@@ -80,7 +80,8 @@ class play extends Phaser.Scene {
         this.checkpoints.create(2914, 2182, 'flag').setScale(2.5);
 
         this.enemies = this.physics.add.group({
-            immovable: true
+            immovable: true,
+            moves: true
         });
         this.enemies.create(600, 2550, 'enemy');
         this.enemies.create(1200, 2400, 'enemy');
@@ -95,18 +96,20 @@ class play extends Phaser.Scene {
         this.coins = this.physics.add.group({
             immovable: true
         })
-        this.coins.create(1800, 2400, 'coin');
+        this.coins.create(1220, 2550, 'coin');
+        this.coins.create(1290, 2550, 'coin');
+        this.coins.create(1150, 2550, 'coin');
         this.coins.children.iterate((child) => {
             child.setSize(20,20);
             child.setOffset(0,12)
             child.setScale(1.4);
+            child.setGravityY(1000);
         });
         
         this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.2);
         this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
 
         this.bert.body.setGravityY(400);
-        //this.bert.setBounce(0.2);
         this.bert.setCollideWorldBounds(true);
         this.physics.add.collider(this.bert, platforms);
         this.physics.add.collider(this.bert, rear_platforms);
@@ -131,7 +134,16 @@ class play extends Phaser.Scene {
 
         this.physics.add.overlap(this.bert, this.coins, collectCoin, null, this);
         function collectCoin (player, coin) {
-            coin.disableBody(true,true);
+            var tween = this.tweens.add({
+                targets: coin,
+                y: coin.body.position.y - 60,
+                duration: 300,
+                ease: 'Cubic',
+                repeat: 0,
+                onComplete: function() {coin.disableBody(true,true);}
+            });
+            //callback: function() {coin.disableBody(true,true)}, callbackScope: this });
+            //coin.disableBody(true,true);
         }
         this.physics.add.overlap(this.bert, this.checkpoints, function(){
             spawnX = this.bert.x;
