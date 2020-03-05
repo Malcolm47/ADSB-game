@@ -1,3 +1,5 @@
+//import {coinX, coinY} from './coinpos.js';
+
 class play extends Phaser.Scene {
     constructor() {
         super({key:'play'});
@@ -47,6 +49,11 @@ class play extends Phaser.Scene {
         var spawnX = 200;
         var spawnY = 2550;
 
+        var coinX = [1220,1290,1150, 338,2151,2491,3227,3521,3676,3932,3770,3700,3630,3220,3300,1820,1627,1370,1181,1025,
+        1095, 900, 830, 760, 690, 620, 550, 480, 410];
+        var coinY = [2550,2550,2550,2614,2422,2294,1974,1846,1718,1334,1078,1078,1078, 950, 950,1078,1398,1782,2102,2166,
+        2166,2230,2230,2230,2230,2230,2230,2230,2230];
+
         const map = this.make.tilemap({ key: 'map' });
         // first thing is embedded tileset name, second is tileset png
         // then width+height of tiles, margin, and spacing
@@ -77,7 +84,8 @@ class play extends Phaser.Scene {
         this.checkpoints = this.physics.add.group({
             immovable: true
         });
-        this.checkpoints.create(2914, 2182, 'flag').setScale(2.5);
+        this.checkpoints.create(2914,2182, 'flag').setScale(2.5);
+        this.checkpoints.create(2406, 0, 'flag').setScale(2.5);
 
         this.enemies = this.physics.add.group({
             immovable: true,
@@ -93,31 +101,34 @@ class play extends Phaser.Scene {
             child.setBounceX(1);
         });
 
+        this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.4);
+        this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
+
         this.coins = this.physics.add.group({
-            immovable: true
+            immovable: true,
+            key: 'coin'
         })
-        this.coins.create(1220, 2550, 'coin');
-        this.coins.create(1290, 2550, 'coin');
-        this.coins.create(1150, 2550, 'coin');
+        coinX.forEach(createCoins, this);
+        function createCoins(value, index) {
+            this.coins.create(value, coinY[index]);
+        }
         this.coins.children.iterate((child) => {
             child.setSize(20,20);
             child.setOffset(0,12)
             child.setScale(1.4);
             child.setGravityY(1000);
         });
-        
-        this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.2);
-        this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
 
         this.bert.body.setGravityY(400);
         this.bert.setCollideWorldBounds(true);
         this.physics.add.collider(this.bert, platforms);
         this.physics.add.collider(this.bert, rear_platforms);
         this.physics.add.collider(this.portal, platforms);
-        this.physics.add.collider(this.checkpoints, platforms);
+        this.physics.add.collider(this.checkpoints, [rear_platforms, platforms]);
+        //this.physics.add.collider(this.checkpoints, platforms);
         this.physics.add.collider(this.enemies, enemyWalls);
         this.physics.add.collider(this.enemies, platforms);
-        this.physics.add.collider(this.coins, platforms);
+        this.physics.add.collider(this.coins, [platforms, rear_platforms]);
         this.physics.add.collider(this.bert, goo, function(){
             this.bert.setX(spawnX);
             this.bert.setY(spawnY);
@@ -203,7 +214,6 @@ class play extends Phaser.Scene {
 
         this.cameras.main.startFollow(this.bert);
         this.cameras.main.setLerp(0.1);
-        //this.cameras.main.roundPixels = true;
     }
 
     update ()
