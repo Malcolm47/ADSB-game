@@ -1,5 +1,3 @@
-//import {coinX, coinY} from './coinpos.js';
-
 class play extends Phaser.Scene {
     constructor() {
         super({key:'play'});
@@ -48,6 +46,7 @@ class play extends Phaser.Scene {
     {
         var spawnX = 200;
         var spawnY = 2550;
+        var score = 0;
 
         var coinX = [1220,1290,1150, 338,2151,2491,3227,3521,3676,3932,3770,3700,3630,3220,3300,1820,1627,1370,1181,1025,
         1095, 900, 830, 760, 690, 620, 550, 480, 410];
@@ -101,7 +100,7 @@ class play extends Phaser.Scene {
             child.setBounceX(1);
         });
 
-        this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.4);
+        this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.3);
         this.portal = this.physics.add.sprite(1000,2600,'portal').setScale(2);
 
         this.coins = this.physics.add.group({
@@ -145,16 +144,21 @@ class play extends Phaser.Scene {
 
         this.physics.add.overlap(this.bert, this.coins, collectCoin, null, this);
         function collectCoin (player, coin) {
+            // disable collision for the coin so the overlap is only detected once
+            coin.body.checkCollision.none = true;
             var tween = this.tweens.add({
                 targets: coin,
                 y: coin.body.position.y - 60,
+                alpha: 0,
                 duration: 300,
                 ease: 'Cubic',
                 repeat: 0,
-                onComplete: function() {coin.disableBody(true,true);}
+                onComplete: () => {
+                    coin.disableBody(true,true);
+                    this.events.emit('addScore');
+                    console.log('tried to emit lol');
+                }
             });
-            //callback: function() {coin.disableBody(true,true)}, callbackScope: this });
-            //coin.disableBody(true,true);
         }
         this.physics.add.overlap(this.bert, this.checkpoints, function(){
             spawnX = this.bert.x;
@@ -214,6 +218,10 @@ class play extends Phaser.Scene {
 
         this.cameras.main.startFollow(this.bert);
         this.cameras.main.setLerp(0.1);
+
+        this.events.on('addScore', function() {
+            console.log('asdfjgjkuehfsbdm');
+        });
     }
 
     update ()
