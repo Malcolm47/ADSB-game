@@ -8,10 +8,9 @@ class hud extends Phaser.Scene {
     preload() {}
 
     create() {
-        var scoreText = this.add.text(650,500, "Score: 0", {fill: '#0f0'});
+        var scoreText = this.add.text(680,560, "Score: 0", {fill: '#0f0'});
 
         //var theGame = this.scene.get('play');
-        console.log('hud created');
         this.scene.get('play').events.on('addScore', function () {
             this.score++;
 
