@@ -1,6 +1,6 @@
 class hud extends Phaser.Scene {
     constructor() {
-        super({key:'hud'});
+        super({ key: 'hud', active: true });
 
         this.score = 0;
     }
@@ -10,10 +10,9 @@ class hud extends Phaser.Scene {
     create() {
         var scoreText = this.add.text(650,500, "Score: 0", {fill: '#0f0'});
 
-        var theGame = this.scene.get('play');
-
-        theGame.events.on('addScore', function () {
-            console.log('addScore received');
+        //var theGame = this.scene.get('play');
+        console.log('hud created');
+        this.scene.get('play').events.on('addScore', function () {
             this.score++;
 
             scoreText.setText('Score: ' + this.score);
