@@ -156,7 +156,6 @@ class play extends Phaser.Scene {
                 onComplete: () => {
                     coin.disableBody(true,true);
                     this.events.emit('addScore');
-                    console.log('tried to emit lol');
                 }
             });
         }
@@ -218,10 +217,6 @@ class play extends Phaser.Scene {
 
         this.cameras.main.startFollow(this.bert);
         this.cameras.main.setLerp(0.1);
-
-        this.events.on('addScore', function() {
-            console.log('asdfjgjkuehfsbdm');
-        });
     }
 
     update ()
