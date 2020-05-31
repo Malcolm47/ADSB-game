@@ -17,7 +17,8 @@ class play extends Phaser.Scene {
         this.load.image('bruh', '../assets/momement2.png');
         this.load.image('tiles', '../assets/earth-tiles.png');
         this.load.image('gooTiles', '../assets/purple-goo.png');
-        this.load.image('dot', '../assets/dot.png');
+        this.load.image('enemy-walls', '../assets/enemy-walls.png');
+        this.load.image('enemy-jump', '../assets/enemy-jump.png');
         this.load.tilemapTiledJSON('map', '../assets/first-test-json.json');
         this.load.spritesheet('bert', '../assets/temp-guy.png', {
             frameWidth: 48,
@@ -31,9 +32,9 @@ class play extends Phaser.Scene {
             frameWidth: 25,
             frameHeight: 32
         });
-        this.load.spritesheet('enemy', '../assets/enemy.png', {
-            frameWidth: 48, 
-            frameHeight: 14
+        this.load.spritesheet('enemy', '../assets/enemy2.png', {
+            frameWidth: 50, 
+            frameHeight: 16
         });
         this.load.spritesheet('coin', '../assets/coin.png', {
             frameWidth: 32,
@@ -44,7 +45,7 @@ class play extends Phaser.Scene {
     create ()
     {
         var spawnX = 110;
-        var spawnY = 2600;
+        var spawnY = 2550;
         var score = 0;
 
         var coinX = [1220,1290,1150, 338,2151,2491,3231,3521,3682,3938,3772,3682,3592,3220,3300,1820,1627,1370,1181,1025,
@@ -62,11 +63,13 @@ class play extends Phaser.Scene {
         // then width+height of tiles, margin, and spacing
         // Remember to manually extrude tiles (18*18 in piskel) :)
         const tileset = map.addTilesetImage('earth', 'tiles', 16, 16, 1, 2);
-        const enemy_walls = map.addTilesetImage('enemy_walls', 'dot', 16, 16, 0, 0);
+        const enemy_walls = map.addTilesetImage('enemy-walls', 'enemy-walls', 16, 16, 0, 0);
+        const enemy_jump = map.addTilesetImage('enemy-jump', 'enemy-jump', 16, 16, 0, 0);
         const background = map.createStaticLayer('background', tileset, 0, 0).setScale(4);
         const platforms = map.createStaticLayer('platforms', tileset, 0, 0).setScale(4);
         const rear_platforms = map.createStaticLayer('rear_platforms', tileset, 0, 0).setScale(4);
-        const enemyWalls = map.createStaticLayer('enemy_walls', enemy_walls, 0, 0).setScale(4);
+        const enemyWalls = map.createDynamicLayer('enemy_walls', enemy_walls, 0, 0).setScale(4);
+        const enemyJump = map.createDynamicLayer('enemy_jump', enemy_jump, 0, 0).setScale(4);
         const gooTiles = map.addTilesetImage('purple-goo', 'gooTiles', 16, 16, 1, 2);
         const goo = map.createDynamicLayer('goo', gooTiles, 0, 0).setScale(4);
         this.animatedTiles.init(map);
@@ -80,7 +83,10 @@ class play extends Phaser.Scene {
         rear_platforms.setCollisionByExclusion(-1, true);
         goo.setCollisionByExclusion(-1, true);
         enemyWalls.setCollisionByExclusion(-1, true);
-        
+        enemyJump.setCollisionByExclusion(-1, true);
+        enemyWalls.setVisible(false);
+        enemyJump.setVisible(false);
+
         this.physics.world.setBounds(0, 0, 8200, 4000);
         this.cameras.main.zoom = 0.8;
         
@@ -100,9 +106,8 @@ class play extends Phaser.Scene {
             this.enemies.create(value, enemyY[index]);
             console.log(value)
         }
-        var asdf = 0;
         this.enemies.children.iterate((child) => {
-            child.setSize(45,10);
+            child.setSize(47,11);
             child.setOffset(0,4)
             child.setScale(3);
             child.setVelocityX(160);
@@ -112,6 +117,7 @@ class play extends Phaser.Scene {
             if (child.y == 0) {
                 child.disableBody(true,true);
             }
+            child.setGravityY(400);
         });
 
         this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.3);
@@ -127,21 +133,20 @@ class play extends Phaser.Scene {
         }
         this.coins.children.iterate((child) => {
             child.setSize(20,20);
-            child.setOffset(0,12)
+            child.setOffset(0,12);
             child.setScale(1.4);
             child.setGravityY(1000);
         });
 
         this.bert.body.setGravityY(400);
         this.bert.setCollideWorldBounds(true);
+        this.bert.setSize(36,36);
+        this.bert.setOffset(6,12);
         this.physics.add.collider(this.bert, platforms);
         this.physics.add.collider(this.bert, rear_platforms);
         this.physics.add.collider(this.portal, platforms);
         this.physics.add.collider(this.checkpoints, [rear_platforms, platforms]);
-        //this.physics.add.collider(this.checkpoints, platforms);
         this.physics.add.collider(this.enemies, [enemyWalls, platforms, rear_platforms]);
-        //this.physics.add.collider(this.enemies, platforms);
-        //this.physics.add.collider(this.enemies, rear_platforms);
         this.physics.add.collider(this.coins, [platforms, rear_platforms]);
         this.physics.add.collider(this.bert, goo, function(){
             this.bert.setX(spawnX);
@@ -156,6 +161,18 @@ class play extends Phaser.Scene {
                 this.bert.setY(spawnY);
             }
         }
+
+        /*this.physics.add.overlap(this.enemies, enemyJump, jumpEnemy, null, this);
+        //coinLayer.setTileIndexCallback(1, enemyJump, this);
+        function jumpEnemy (enemy) {
+            console.log("AAAAAAAAAAAA");
+            enemy.setVelocityY(-500);
+        }*/
+
+        /*this.physics.add.overlap(this.enemies, enemyWalls, testEnemy, null, this);
+        function testEnemy (enemy) {
+            console.log("boomp");
+        }*/
 
         this.physics.add.overlap(this.bert, this.coins, collectCoin, null, this);
         function collectCoin (player, coin) {
@@ -245,18 +262,24 @@ class play extends Phaser.Scene {
     {
         // deceleration
         this.bert.body.useDamping=true;
-        this.bert.setDrag(0.9, 0); //takes value between 0-1 you can also set x,y seperately setDrag(x,y)
+        if (this.bert.body.onFloor()) {
+            this.bert.setDrag(0.8, 0); //takes value between 0-1 you can also set x,y seperately setDrag(x,y)
+        } else {
+            this.bert.setDrag(0.98, 0);
+        }
+        
         if (this.keyW.isDown && this.bert.body.onFloor()) {
             this.bert.setVelocityY(-500);
         }
         if (this.keyD.isDown) {
-            this.bert.setAccelerationX(1000);
+            this.bert.setAccelerationX(1100);
             this.bert.play('bert_right', true);
         } else if (this.keyA.isDown) {
-            this.bert.setAccelerationX(-1000);
+            this.bert.setAccelerationX(-1100);
             this.bert.play('bert_left', true);
         } else {
             this.bert.setAccelerationX(0);
+            //this.bert.setVelocityX(0);
             this.bert.anims.stop();
             this.bert.setFrame(9);
         }
