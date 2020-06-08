@@ -97,7 +97,7 @@ class play extends Phaser.Scene {
         this.checkpoints.create(2406, 0, 'flag').setScale(2.5);
 
         this.enemies = this.physics.add.group({
-            immovable: true,
+            //immovable: true,
             moves: true,
             key: 'enemy'
         });
@@ -107,17 +107,17 @@ class play extends Phaser.Scene {
             console.log(value)
         }
         this.enemies.children.iterate((child) => {
-            child.setSize(47,11);
-            child.setOffset(0,4)
+            child.setSize(44,11);
+            child.setOffset(3,4)
             child.setScale(3);
-            child.setVelocityX(160);
+            child.setVelocityX(230);
             child.setBounceX(1);
             // This is really bad but I have no clue why it's creating 
             // a weird duplicate
             if (child.y == 0) {
                 child.disableBody(true,true);
             }
-            child.setGravityY(400);
+            child.setGravityY(1000);
         });
 
         this.bert = this.physics.add.sprite(spawnX,spawnY,'bert').setScale(1.3);
@@ -147,6 +147,7 @@ class play extends Phaser.Scene {
         this.physics.add.collider(this.portal, platforms);
         this.physics.add.collider(this.checkpoints, [rear_platforms, platforms]);
         this.physics.add.collider(this.enemies, [enemyWalls, platforms, rear_platforms]);
+        this.physics.add.overlap(this.enemies, enemyJump);
         this.physics.add.collider(this.coins, [platforms, rear_platforms]);
         this.physics.add.collider(this.bert, goo, function(){
             this.bert.setX(spawnX);
@@ -162,16 +163,24 @@ class play extends Phaser.Scene {
             }
         }
 
-        /*this.physics.add.overlap(this.enemies, enemyJump, jumpEnemy, null, this);
-        //coinLayer.setTileIndexCallback(1, enemyJump, this);
+        //this.physics.add.overlap(this.enemies, enemyJump, jumpEnemy, null, this);
+        enemyJump.setTileIndexCallback(16, jumpEnemy, this);
         function jumpEnemy (enemy) {
-            console.log("AAAAAAAAAAAA");
-            enemy.setVelocityY(-500);
-        }*/
+            //console.log("AAAAAAAAAAAA");
+            //console.log(enemy.body.velocity.y);
+            if (enemy.body.velocity.y == 0) {
+                enemy.setVelocityY(-500);
+            }
+            //console.log(enemy.body.velocity.y);
+        }
 
-        /*this.physics.add.overlap(this.enemies, enemyWalls, testEnemy, null, this);
-        function testEnemy (enemy) {
+        //enemyWalls.setTileIndexCallback(15, testEnemy, this);
+
+        //this.physics.add.overlap(this.enemies, enemyWalls, testEnemy, null, this);
+        /*function testEnemy (enemy) {
             console.log("boomp");
+            enemy.setVelocityY(-500);
+            //console.log(enemy.body.velocity.y);
         }*/
 
         this.physics.add.overlap(this.bert, this.coins, collectCoin, null, this);
